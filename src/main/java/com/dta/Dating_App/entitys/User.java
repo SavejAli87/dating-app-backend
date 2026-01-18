@@ -1,0 +1,42 @@
+package com.dta.Dating_App.entitys;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDate;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder   //  REQUIRED FOR builder()
+@Table(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+    private String mobile;
+    private String password;
+    private String gender;
+    private String orientation;
+   // private int age;
+    private String bio;
+    private String role;
+
+
+    @Column(nullable = false)
+    private String displayName;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate dob;
+
+    private String profileImageUrl;
+}
