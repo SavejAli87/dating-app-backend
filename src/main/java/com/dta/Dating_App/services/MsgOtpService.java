@@ -1,5 +1,7 @@
 package com.dta.Dating_App.services;
 
+import com.dta.Dating_App.entitys.User;
+import com.dta.Dating_App.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class MsgOtpService {
     @Value("${msg91.url.verify}")
     private String verifyUrl;
 
+    private final UserRepository userRepository;
     private final RestTemplate restTemplate = new RestTemplate();
 
     //  SEND OTP
@@ -37,7 +40,7 @@ public class MsgOtpService {
     }
 
     //  VERIFY OTP
-    public String verifyOtp(String mobile, String otp) {
+    public String verifyOtp(Long userId,String mobile, String otp) {
 
         String url = verifyUrl
                 + "?mobile=91" + mobile
@@ -45,6 +48,20 @@ public class MsgOtpService {
                 + "&authkey=" + authKey;
 
         String response = restTemplate.getForObject(url, String.class);
+
+
+        // success check (simple)
+        boolean verified = response != null && response.toLowerCase().contains("success");
+
+        if (verified) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found "));
+
+            user.setMobile(mobile);
+            userRepository.save(user);
+
+            return "OTP Verified  Mobile Saved \nMSG91 Response: " + response;
+        }
 
         return "OTP Verified \nMSG91 Response: " + response;
     }

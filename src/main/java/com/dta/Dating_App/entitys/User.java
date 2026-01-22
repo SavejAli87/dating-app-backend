@@ -27,7 +27,7 @@ public class User {
     private String password;
     private String gender;
     private String orientation;
-   // private int age;
+    private int age;
     private String bio;
     private String role;
 
@@ -39,4 +39,24 @@ public class User {
     private LocalDate dob;
 
     private String profileImageUrl;
+
+
+    private String language;
+    private String appearance;
+    private String bodyType;
+    private Integer height;
+    private String englishLevel;
+    private String ethnicity;
+    private String smoke;   // YES / NO / OCCASIONALLY
+    private String drink;   // YES / NO / OCCASIONALLY
+    private boolean verifiedSelfie; //  selfie verification status
+
+    // Location
+    private String currentCity;
+    private String currentState;
+    private String currentCountry;
+
+    private Double currentLat;
+    private Double currentLng;
+
 }

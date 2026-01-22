@@ -23,11 +23,11 @@ public class AuthController {
         String password = (String) body.get("password");
         String gender = (String) body.get("gender");
         String bio = (String) body.get("bio");
-        LocalDate dob = (LocalDate) body.get("dob");
+        LocalDate dob = LocalDate.parse(body.get("dob").toString());
         String displayName = (String) body.get("displayName");
 
-//        Object ageValue = body.get("age");
-//        int age = (ageValue == null) ? 0 : Integer.parseInt(ageValue.toString());
+        Object ageValue = body.get("age");
+        int age = (ageValue == null) ? 0 : Integer.parseInt(ageValue.toString());
 
         authService.register(name, email, password, gender, bio, displayName,dob);
 

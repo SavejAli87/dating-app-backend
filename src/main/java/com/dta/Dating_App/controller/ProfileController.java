@@ -1,6 +1,8 @@
 package com.dta.Dating_App.controller;
 
+import com.dta.Dating_App.DTO.ProfileResponse;
 import com.dta.Dating_App.services.ProfileService;
+import com.dta.Dating_App.services.ViewProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,8 @@ import java.util.Map;
 public class ProfileController {
 
     private final ProfileService profileService;
+
+    private final ViewProfileService viewProfileService;
 
     @PostMapping("/{userId}/setup")
     public ResponseEntity<String> setupProfile(
@@ -45,5 +49,11 @@ public class ProfileController {
 
         return ResponseEntity.ok("Gender & Orientation Saved ");
 
+    }
+
+    // View My Profile
+    @GetMapping("/me/{userId}")
+    public ResponseEntity<ProfileResponse> myProfile(@PathVariable Long userId) {
+        return ResponseEntity.ok(viewProfileService.getMyProfile(userId));
     }
 }

@@ -3,6 +3,7 @@ package com.dta.Dating_App.services;
 import com.dta.Dating_App.entitys.User;
 import com.dta.Dating_App.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,30 +12,35 @@ public class ForgotPasswordService {
 
     private final UserRepository userRepository;
     private final MsgOtpService msgOtpService;
+    private final PasswordEncoder passwordEncoder;
 
-    //send otp
-    public String sendOtp(String mobile){
+    //  Send OTP
+    public String sendOtp(String mobile) {
 
         User user = userRepository.findByMobile(mobile)
-                .orElseThrow(() -> new RuntimeException("User not Found with this mobile"));
+                .orElseThrow(() -> new RuntimeException("User not found with this mobile "));
 
         return msgOtpService.sendOtp(user.getMobile());
     }
 
-    // Verify Otp + Reset password
+    //  Verify OTP + Reset Password
     public String resetPassword(String mobile, String otp, String newPassword) {
 
         User user = userRepository.findByMobile(mobile)
-                .orElseThrow(() -> new RuntimeException("User Not Found"));
+                .orElseThrow(() -> new RuntimeException("User not found "));
 
-        String verifyResponse = msgOtpService.verifyOtp(mobile,otp);
+        //  Correct OTP verify call
+        String verifyResponse = msgOtpService.verifyOtp(user.getId(), mobile, otp);
 
-        if(!verifyResponse.contains("success")){
-            return "OTP Invalid";
+        // Correct success check
+        if (!verifyResponse.toLowerCase().contains("verified")) {
+            return "OTP Invalid ";
         }
 
-        user.setPassword(newPassword);
+        // Always encode password
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        return "Password Reset Successfully";
+
+        return "Password Reset Successfully ";
     }
 }

@@ -25,6 +25,9 @@ public class MsgOtpController {
     //Verify OTP
     @PostMapping("/msgVerify")
     public ResponseEntity<String> verifyOtp(@RequestBody MsgVerifyOtp request){
-        return ResponseEntity.ok(msgOtpService.verifyOtp(request.getMobile(),request.getOtp()));
+        return ResponseEntity.ok(
+                msgOtpService.verifyOtp(request.getUserId(), request.getMobile(), request.getOtp())
+        );
     }
+
 }

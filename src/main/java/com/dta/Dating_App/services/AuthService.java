@@ -35,6 +35,7 @@ public class AuthService {
         User user = User.builder()
                 .name(name)
                 .email(email)
+                .age(age)
                 .password(password) // plain password (testing)
                 .gender(gender)
                 .bio(bio)

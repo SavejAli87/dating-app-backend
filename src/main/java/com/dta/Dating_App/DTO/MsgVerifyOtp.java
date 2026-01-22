@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class MsgVerifyOtp {
+    private Long userId;
     private String mobile;
     private String otp;
 }
