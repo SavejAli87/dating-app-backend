@@ -30,7 +30,7 @@ public class ViewProfileService {
                 .id(user.getId())
                 .name(user.getName())
                 .displayName(user.getDisplayName())
-                .email(user.getEmail())
+                //.email(user.getEmail())
 //                .age(user.getAge())
                 .bio(user.getBio())
                 .language(user.getLanguage())

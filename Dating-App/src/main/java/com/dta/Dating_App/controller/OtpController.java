@@ -2,7 +2,6 @@ package com.dta.Dating_App.controller;
 
 import com.dta.Dating_App.DTO.SendOtpRequest;
 import com.dta.Dating_App.DTO.VerifyOtpRequest;
-import com.dta.Dating_App.services.OtpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

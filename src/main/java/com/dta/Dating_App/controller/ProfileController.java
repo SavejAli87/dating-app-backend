@@ -56,4 +56,17 @@ public class ProfileController {
     public ResponseEntity<ProfileResponse> myProfile(@PathVariable Long userId) {
         return ResponseEntity.ok(viewProfileService.getMyProfile(userId));
     }
+
+    // selfie image
+    @PostMapping("/selfie/upload")
+    public ResponseEntity<String> uploadSelfie(@RequestParam Long userId,
+                                               @RequestParam MultipartFile selfie){
+        return ResponseEntity.ok("Selfie uploaded (Verification pending)");
+    }
+
+    @PutMapping("/selfie/verify/{userId}")
+    public ResponseEntity<String> verifySelfie(@PathVariable Long userId) {
+
+        return ResponseEntity.ok("Selfie verified");
+    }
 }

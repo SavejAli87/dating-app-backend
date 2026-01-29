@@ -19,7 +19,7 @@ public class AuthController {
     public ResponseEntity<String> register(@RequestBody Map<String, Object> body) {
 
         String name = (String) body.get("name");
-        String email = (String) body.get("email");
+       // String email = (String) body.get("email");
         String password = (String) body.get("password");
         String gender = (String) body.get("gender");
         String bio = (String) body.get("bio");
@@ -29,7 +29,7 @@ public class AuthController {
         Object ageValue = body.get("age");
         int age = (ageValue == null) ? 0 : Integer.parseInt(ageValue.toString());
 
-        authService.register(name, email, password, gender, bio, displayName,dob);
+        authService.register(name, password, gender, bio, displayName,dob);
 
         return ResponseEntity.ok("User Registered Successfully");
     }
@@ -37,10 +37,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> body) {
 
-        String email = body.get("email");
+        String mobile = body.get("mobile");
         String password = body.get("password");
 
-        String token = authService.login(email, password);
+        String token = authService.login(mobile, password);
 
         return ResponseEntity.ok(Map.of(
                 "message", "Login Successful",

@@ -22,12 +22,12 @@ public class User {
     private String name;
 
     @Column(unique = true, nullable = false)
-    private String email;
+   // private String email;
     private String mobile;
     private String password;
     private String gender;
     private String orientation;
-    private int age;
+    private Integer age;
     private String bio;
     private String role;
 
@@ -47,6 +47,7 @@ public class User {
     private Integer height;
     private String englishLevel;
     private String ethnicity;
+    private String lookingFor;
     private String smoke;   // YES / NO / OCCASIONALLY
     private String drink;   // YES / NO / OCCASIONALLY
     private boolean verifiedSelfie; //  selfie verification status
@@ -58,5 +59,11 @@ public class User {
 
     private Double currentLat;
     private Double currentLng;
+
+    private Boolean online;
+    private java.time.LocalDateTime lastSeen;
+    private java.time.LocalDateTime createdAt;
+
+    private boolean delete;
 
 }
