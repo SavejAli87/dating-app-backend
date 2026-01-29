@@ -19,6 +19,7 @@ public class AuthService {
     public void register(
             String name,
             String password,
+           // String mobile,
             String gender,
             String bio,
             String displayName,
@@ -36,8 +37,10 @@ public class AuthService {
 
         User user = User.builder()
                 .name(name)
+
                 .password(password) // plain (testing)
                 .gender(gender)
+                //.mobile(mobile)
                 .bio(bio)
                 .dob(dob)
                 .age(age)
@@ -49,7 +52,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    // Login using displayName + password
+    // Login using Mobile + password
     public String login(String mobile, String password) {
 
         User user = userRepository.findByMobile(mobile)

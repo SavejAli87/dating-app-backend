@@ -21,8 +21,7 @@ public class User {
 
     private String name;
 
-    @Column(unique = true, nullable = false)
-   // private String email;
+    //@Column(nullable = false, unique = true)
     private String mobile;
     private String password;
     private String gender;
@@ -64,6 +63,10 @@ public class User {
     private java.time.LocalDateTime lastSeen;
     private java.time.LocalDateTime createdAt;
 
-    private boolean delete;
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
+
+
 
 }

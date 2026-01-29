@@ -17,7 +17,7 @@ public class OtpVerification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String email;
+    private String mobile;
     private String otp;
     private LocalDateTime expiryTime;
 

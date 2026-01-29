@@ -13,7 +13,7 @@ public class AccountService {
 
     public String softDelete(Long userId){
         User user = userRepository.findById(userId).orElseThrow();
-        user.setDelete(true);
+        user.setIsDeleted(true);
         userRepository.save(user);
         return "Account deactivated";
     }
