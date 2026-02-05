@@ -5,9 +5,11 @@ import com.dta.Dating_App.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ForgotPasswordService {
 
     private final UserRepository userRepository;
@@ -33,8 +35,11 @@ public class ForgotPasswordService {
         String verifyResponse = msgOtpService.verifyOtp(user.getId(), mobile, otp);
 
         // Correct success check
-        if (!verifyResponse.toLowerCase().contains("verified")) {
-            return "OTP Invalid ";
+        boolean verified = verifyResponse != null &&
+                verifyResponse.toLowerCase().contains("success");
+
+        if (!verified) {
+            return "OTP Invalid";
         }
 
         // Always encode password

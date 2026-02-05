@@ -16,12 +16,14 @@ public class Subscription {
 
     private Long id;
 
-    @ManyToOne
-    private User user;
-
     private String plan;//Free, Gold, Premium
     private boolean active;
 
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
 }

@@ -26,4 +26,7 @@ public interface UserRepository extends JpaRepository<User,Long>, JpaSpecificati
     List<User> searchUsers(Integer minAge, Integer maxAge,
                           String language, String ethnicity,
                           String smoke, String drink);
+
+    //Telegram
+    boolean existsByTelegramUsername(String telegramUsername);
 }

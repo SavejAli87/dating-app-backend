@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder   //  REQUIRED FOR builder()
-@Table(name = "users")
+@Table(name = "Users")
 public class User {
 
     @Id
@@ -66,6 +67,17 @@ public class User {
     @Builder.Default
     @Column(nullable = false)
     private Boolean isDeleted = false;
+
+    //Telegram username Store
+    @Column(unique = true, nullable = true)
+    private String telegramUsername;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Payment> payments;
+
+    @ManyToOne
+    private Subscription subscriptions;
+
 
 
 
