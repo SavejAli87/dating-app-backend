@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder   //  REQUIRED FOR builder()
-@Table(name = "Users")
+@Table(name = "users")
 public class User {
 
     @Id
