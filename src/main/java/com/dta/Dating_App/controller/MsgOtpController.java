@@ -5,29 +5,38 @@ import com.dta.Dating_App.DTO.MsgVerifyOtp;
 import com.dta.Dating_App.services.MsgOtpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/otp")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class MsgOtpController {
+
     private final MsgOtpService msgOtpService;
 
-    // Send otp
-    @PostMapping("/msgSend")
-    public ResponseEntity<String> sendOtp(@RequestBody MsgSendOtp request){
-        return ResponseEntity.ok(msgOtpService.sendOtp(request.getMobile()));
-    }
+    //  SEND OTP
+    @PostMapping("/send-otp")
+    public ResponseEntity<String> sendOtp(@RequestBody MsgSendOtp request) {
 
-    //Verify OTP
-    @PostMapping("/msgVerify")
-    public ResponseEntity<String> verifyOtp(@RequestBody MsgVerifyOtp request){
         return ResponseEntity.ok(
-                msgOtpService.verifyOtp(request.getUserId(), request.getMobile(), request.getOtp())
+                msgOtpService.sendOtp(request.getMobile())
         );
     }
 
+    //  VERIFY OTP (optional use)
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtp(@RequestBody MsgVerifyOtp request) {
+
+        boolean isValid = msgOtpService.verifyOtp(
+                request.getMobile(),
+                request.getOtp()
+        );
+
+        if (!isValid) {
+            return ResponseEntity.badRequest().body("Invalid OTP");
+        }
+
+        return ResponseEntity.ok("OTP Verified Successfully");
+    }
 }

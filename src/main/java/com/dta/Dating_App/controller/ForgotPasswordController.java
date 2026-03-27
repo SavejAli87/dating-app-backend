@@ -1,28 +1,33 @@
 package com.dta.Dating_App.controller;
 
-import com.dta.Dating_App.DTO.ForgotPasswordRequest;
+
 import com.dta.Dating_App.DTO.ResetPasswordRequest;
+import com.dta.Dating_App.DTO.SendOtpRequest;
 import com.dta.Dating_App.services.ForgotPasswordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/forgot-password")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ForgotPasswordController {
 
     private final ForgotPasswordService forgotPasswordService;
 
-    // Send OTP
-    @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request){
-        return ResponseEntity.ok(forgotPasswordService.sendOtp(request.getMobile()));
+    @PostMapping("/send-otp")
+    public ResponseEntity<String> sendOtp(@RequestBody SendOtpRequest request) {
+        return ResponseEntity.ok(
+                forgotPasswordService.sendOtp(request.getMobile())
+        );
     }
 
-    //Reset Password
-    @PostMapping("/reset-password")
+    @PostMapping("/reset")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
+
         return ResponseEntity.ok(
                 forgotPasswordService.resetPassword(
                         request.getMobile(),
@@ -31,5 +36,4 @@ public class ForgotPasswordController {
                 )
         );
     }
-
 }

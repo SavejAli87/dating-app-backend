@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/telegram")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class TelegramController {
 
     private final TelegramService telegramService;

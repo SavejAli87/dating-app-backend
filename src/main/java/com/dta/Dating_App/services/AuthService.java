@@ -1,13 +1,17 @@
 package com.dta.Dating_App.services;
 
+import com.dta.Dating_App.DTO.RegisterRequest;
 import com.dta.Dating_App.JWTUtility.JwtService;
 import com.dta.Dating_App.entitys.User;
 import com.dta.Dating_App.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.Period;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -15,53 +19,82 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final MsgOtpService otpService;
+    private final PasswordEncoder passwordEncoder;
 
-    public void register(
-            String name,
-            String password,
-           // String mobile,
-            String gender,
-            String bio,
-            String displayName,
-            LocalDate dob
-    ) {
+    private final Map<String, RegisterRequest> tempUsers = new HashMap<>();
 
-        if (userRepository.existsByDisplayName(displayName)) {
-            throw new RuntimeException("Display name already taken");
+
+
+    public Map<String, String> initRegister(RegisterRequest request) {
+
+        String sessionId = UUID.randomUUID().toString();
+
+        tempUsers.put(sessionId, request);
+
+        otpService.sendOtp(request.getMobile());
+
+        return Map.of(
+                "message", "OTP Sent",
+                "sessionId", sessionId
+        );
+    }
+
+
+    public String verifyAndRegister(String sessionId, String otp) {
+
+        RegisterRequest request = tempUsers.get(sessionId);
+
+        if (request == null) {
+            throw new RuntimeException("Session expired");
         }
 
-        int age = Period.between(dob, LocalDate.now()).getYears();
-        if (age < 18) {
-            throw new RuntimeException("Age must be 18+");
+        boolean isValidOtp = otpService.verifyOtp(
+                request.getMobile(),
+                otp
+        );
+
+        if (!isValidOtp) {
+            throw new RuntimeException("Invalid OTP");
         }
 
         User user = User.builder()
-                .name(name)
-
-                .password(password) // plain (testing)
-                .gender(gender)
-                //.mobile(mobile)
-                .bio(bio)
-                .dob(dob)
-                .age(age)
+                .name(request.getName())
+                .mobile(request.getMobile())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .role("USER")
-                .displayName(displayName)
-                //.active(true)
                 .build();
 
         userRepository.save(user);
+
+        tempUsers.remove(sessionId);
+
+        return jwtService.generateToken(user.getMobile());
     }
 
-    // Login using Mobile + password
+    // LOGIN
     public String login(String mobile, String password) {
 
-        User user = userRepository.findByMobile(mobile)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        //  Basic validation
+        if (mobile == null || password == null) {
+            throw new RuntimeException("Mobile and password are required");
+        }
 
-        if (!password.equals(user.getPassword())) {
+        //  Find user
+        User user = userRepository.findByMobile(mobile)
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+        //  Check deleted user
+        if (Boolean.TRUE.equals(user.getIsDeleted())) {
+            throw new RuntimeException("Account is deactivated");
+        }
+
+        //  Password check
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return jwtService.generateToken(user.getDisplayName());
+        //  Generate JWT
+        return jwtService.generateToken(user.getMobile());
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/privacy")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class PrivacyController {
 
     private final PrivacyService privacyService;

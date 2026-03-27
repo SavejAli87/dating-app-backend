@@ -16,36 +16,39 @@ public class ForgotPasswordService {
     private final MsgOtpService msgOtpService;
     private final PasswordEncoder passwordEncoder;
 
-    //  Send OTP
+    // ✅ SEND OTP
     public String sendOtp(String mobile) {
 
         User user = userRepository.findByMobile(mobile)
-                .orElseThrow(() -> new RuntimeException("User not found with this mobile "));
+                .orElseThrow(() -> new RuntimeException("User not found with this mobile"));
 
-        return msgOtpService.sendOtp(user.getMobile());
+        msgOtpService.sendOtp(user.getMobile());
+
+        return "OTP Sent Successfully";
     }
 
-    //  Verify OTP + Reset Password
+    // ✅ RESET PASSWORD
     public String resetPassword(String mobile, String otp, String newPassword) {
 
         User user = userRepository.findByMobile(mobile)
-                .orElseThrow(() -> new RuntimeException("User not found "));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        //  Correct OTP verify call
-        String verifyResponse = msgOtpService.verifyOtp(user.getId(), mobile, otp);
+        // ✅ OTP verify (NEW WAY)
+        boolean isValidOtp = msgOtpService.verifyOtp(mobile, otp);
 
-        // Correct success check
-        boolean verified = verifyResponse != null &&
-                verifyResponse.toLowerCase().contains("success");
-
-        if (!verified) {
-            return "OTP Invalid";
+        if (!isValidOtp) {
+            throw new RuntimeException("Invalid or expired OTP");
         }
 
-        // Always encode password
+        // ✅ Password validation (optional but recommended)
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new RuntimeException("Password must be at least 6 characters");
+        }
+
+        // ✅ Encode password
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
-        return "Password Reset Successfully ";
+        return "Password Reset Successfully";
     }
 }

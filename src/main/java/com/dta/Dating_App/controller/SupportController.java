@@ -12,6 +12,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/support")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class SupportController {
 
     private final SupportService supportService;

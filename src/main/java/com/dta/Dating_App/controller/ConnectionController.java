@@ -1,5 +1,7 @@
 package com.dta.Dating_App.controller;
 
+import com.dta.Dating_App.DTO.ActionRequestDTO;
+import com.dta.Dating_App.DTO.SendRequestDTO;
 import com.dta.Dating_App.entitys.ConnectionRequest;
 import com.dta.Dating_App.services.ConnectionService;
 import lombok.RequiredArgsConstructor;
@@ -11,36 +13,53 @@ import java.util.List;
 @RestController
 @RequestMapping("/connections")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ConnectionController {
 
     private final ConnectionService connectionService;
 
     // Send Request
     @PostMapping("/send")
-    public ResponseEntity<String> send(@RequestParam Long senderId,
-                                       @RequestParam Long receiverId){
-        return ResponseEntity.ok(connectionService.sendRequest(senderId,receiverId));
+    public ResponseEntity<String> send(@RequestBody SendRequestDTO request){
+        return ResponseEntity.ok(
+                connectionService.sendRequest(
+                        request.getSenderId(),
+                        request.getReceiverId()
+                )
+        );
     }
 
     // Accept Request
     @PutMapping("/accept")
-    public ResponseEntity<String> accept(@RequestParam Long requestId,
-                                         @RequestParam Long receiverId){
-        return ResponseEntity.ok(connectionService.acceptRequest(requestId,receiverId));
+    public ResponseEntity<String> accept(@RequestBody ActionRequestDTO request){
+        return ResponseEntity.ok(
+                connectionService.acceptRequest(
+                        request.getRequestId(),
+                        request.getUserId()
+                )
+        );
     }
 
     //Decline Request
     @PutMapping("/decline")
-    public ResponseEntity<String> decline(@RequestParam Long requestId,
-                                          @RequestParam Long receiverId){
-        return ResponseEntity.ok(connectionService.declineRequest(requestId, receiverId));
+    public ResponseEntity<String> decline(@RequestBody ActionRequestDTO request){
+        return ResponseEntity.ok(
+                connectionService.declineRequest(
+                        request.getRequestId(),
+                        request.getUserId()
+                )
+        );
     }
 
     // Cancel Request
     @PutMapping("/cancel")
-    public ResponseEntity<String> cancel(@RequestParam Long requestId,
-                                         @RequestParam Long senderId){
-        return ResponseEntity.ok(connectionService.cancelRequest(requestId, senderId));
+    public ResponseEntity<String> cancel(@RequestBody ActionRequestDTO request){
+        return ResponseEntity.ok(
+                connectionService.cancelRequest(
+                        request.getRequestId(),
+                        request.getUserId()
+                )
+        );
     }
 
     // Received List

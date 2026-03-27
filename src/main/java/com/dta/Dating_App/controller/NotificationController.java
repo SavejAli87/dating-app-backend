@@ -10,6 +10,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/notification")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class NotificationController {
 
     private final NotificationService notificationService;

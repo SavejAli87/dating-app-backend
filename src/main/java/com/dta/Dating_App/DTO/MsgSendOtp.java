@@ -5,4 +5,5 @@ import lombok.Data;
 @Data
 public class MsgSendOtp {
     private String mobile;
+    private String otp;
 }

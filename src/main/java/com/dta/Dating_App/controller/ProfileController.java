@@ -1,5 +1,7 @@
 package com.dta.Dating_App.controller;
 
+import com.dta.Dating_App.DTO.GenderOrientationRequest;
+import com.dta.Dating_App.DTO.ProfileRequestDTO;
 import com.dta.Dating_App.DTO.ProfileResponse;
 import com.dta.Dating_App.services.ProfileService;
 import com.dta.Dating_App.services.ViewProfileService;
@@ -8,65 +10,101 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Map;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/profile")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ProfileController {
 
     private final ProfileService profileService;
-
     private final ViewProfileService viewProfileService;
 
-    @PostMapping("/{userId}/setup")
+    // ================== FULL PROFILE SETUP ==================
+    @PostMapping(value = "/{userId}/setup", consumes = "multipart/form-data")
     public ResponseEntity<String> setupProfile(
+
             @PathVariable Long userId,
-            @RequestParam String displayName,
-            @RequestParam(required = false)MultipartFile photo
-            ){
-        profileService.setupProfile(userId,displayName,photo);
-        return ResponseEntity.ok("Profile setup done ");
+
+            @RequestPart("data") ProfileRequestDTO dto,
+
+            @RequestPart(value = "photo", required = false) MultipartFile photo
+    ) {
+
+        LocalDate parsedDob = null;
+        if (dto.getDob() != null && !dto.getDob().isEmpty()) {
+            parsedDob = LocalDate.parse(dto.getDob());
+        }
+
+        profileService.setupProfile(
+                userId,
+                dto.getDisplayName(),
+                dto.getGender(),
+                dto.getOrientation(),
+                dto.getAge(),
+                dto.getBio(),
+                parsedDob,
+                dto.getLanguage(),
+                dto.getAppearance(),
+                dto.getBodyType(),
+                dto.getHeight(),
+                dto.getEnglishLevel(),
+                dto.getEthnicity(),
+                dto.getLookingFor(),
+                dto.getSmoke(),
+                dto.getDrink(),
+                photo
+        );
+
+        return ResponseEntity.ok("Profile setup done");
     }
 
-    @PostMapping("/upload-image")
+    // ================== UPLOAD IMAGE ==================
+    @PostMapping(value = "/upload-image", consumes = "multipart/form-data")
     public ResponseEntity<String> uploadImage(
             @RequestParam Long userId,
             @RequestParam MultipartFile image
     ){
-        profileService.uploadImage(userId,image);
+        profileService.uploadImage(userId, image);
         return ResponseEntity.ok("Image Uploaded");
     }
 
+    // ================== GENDER + ORIENTATION ==================
     @PostMapping("/gender-orientation")
-    public ResponseEntity<String> saveGenderOrientation(@RequestBody Map<String, String> body){
+    public ResponseEntity<String> saveGenderOrientation(
+            @RequestBody GenderOrientationRequest request){
 
-        Long userId = Long.valueOf(body.get("UserId"));
-        String gender = body.get("gender");
-        String orientation = body.get("orientation");
+        profileService.saveGenderOrientation(
+                request.getUserId(),
+                request.getGender(),
+                request.getOrientation()
+        );
 
-        profileService.saveGenderOrientation(userId, gender, orientation);
-
-        return ResponseEntity.ok("Gender & Orientation Saved ");
-
+        return ResponseEntity.ok("Gender & Orientation Saved");
     }
 
-    // View My Profile
+    // ================== VIEW MY PROFILE ==================
     @GetMapping("/me/{userId}")
     public ResponseEntity<ProfileResponse> myProfile(@PathVariable Long userId) {
         return ResponseEntity.ok(viewProfileService.getMyProfile(userId));
     }
 
-    // selfie image
-    @PostMapping("/selfie/upload")
-    public ResponseEntity<String> uploadSelfie(@RequestParam Long userId,
-                                               @RequestParam MultipartFile selfie){
+    // ================== SELFIE UPLOAD ==================
+    @PostMapping(value = "/selfie/upload", consumes = "multipart/form-data")
+    public ResponseEntity<String> uploadSelfie(
+            @RequestParam Long userId,
+            @RequestParam MultipartFile selfie
+    ){
+        // Future: AI verification
         return ResponseEntity.ok("Selfie uploaded (Verification pending)");
     }
 
+    // ================== SELFIE VERIFY ==================
     @PutMapping("/selfie/verify/{userId}")
     public ResponseEntity<String> verifySelfie(@PathVariable Long userId) {
 
+        // Future: Admin / AI verify logic
         return ResponseEntity.ok("Selfie verified");
     }
 }

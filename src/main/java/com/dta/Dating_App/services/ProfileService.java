@@ -2,7 +2,9 @@ package com.dta.Dating_App.services;
 
 import com.dta.Dating_App.entitys.User;
 import com.dta.Dating_App.entitys.UserImage;
+import com.dta.Dating_App.entitys.UserProfile;
 import com.dta.Dating_App.repository.UserImageRepository;
+import com.dta.Dating_App.repository.UserProfileRepository;
 import com.dta.Dating_App.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,133 +23,188 @@ import java.util.UUID;
 public class ProfileService {
 
     private final UserRepository userRepository;
-
     private final UserImageRepository userImageRepository;
+    private final UserProfileRepository userProfileRepository;
 
-    private final String uploadDir = "/uploads/";
+    private final String uploadDir = "uploads/";
 
-    public void setupProfile(Long userId, String displayName, MultipartFile photo) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("user Not Found"));
+    // ================== COMMON IMAGE SAVE ==================
+    private String saveImage(MultipartFile file) {
+        try {
 
-        // displayName unique check
-        if(userRepository.existsByDisplayName(displayName)) {
-            throw new RuntimeException("Display name already taken");
-        }
-        user.setDisplayName(displayName);
-
-        if(photo != null && !photo.isEmpty()){
-
-            try{
-                File dir = new File(uploadDir);
-                if (!dir.exists()) dir.mkdirs();
-
-                String fileName = UUID.randomUUID() + "_" + photo.getOriginalFilename();
-                Path filePath = Paths.get(uploadDir + fileName);
-
-                Files.write(filePath, photo.getBytes());
-
-                String imageUrl = "http://localhost:9092/" + uploadDir + fileName;
-                user.setProfileImageUrl(imageUrl);
-            } catch (Exception e) {
-                throw new RuntimeException("Image upload failed");
+            if (file == null || file.isEmpty()) {
+                throw new RuntimeException("File is empty");
             }
-        }
 
-        userRepository.save(user);
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new RuntimeException("Only image files allowed");
+            }
+
+            if (file.getSize() > 2 * 1024 * 1024) {
+                throw new RuntimeException("File too large (Max 2MB)");
+            }
+
+            File dir = new File(uploadDir);
+            if (!dir.exists()) dir.mkdirs();
+
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path path = Paths.get(uploadDir + fileName);
+
+            Files.write(path, file.getBytes());
+
+            return fileName;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Image upload failed");
+        }
     }
-  public void saveGenderOrientation(Long userId, String gender, String orientation){
+
+    // ================== FULL PROFILE SETUP ==================
+    public void setupProfile(
+            Long userId,
+            String displayName,
+            String gender,
+            String orientation,
+            Integer age,
+            String bio,
+            LocalDate dob,
+            String language,
+            String appearance,
+            String bodyType,
+            Integer height,
+            String englishLevel,
+            String ethnicity,
+            String lookingFor,
+            String smoke,
+            String drink,
+            MultipartFile photo
+    ) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Not found"));
+                .orElseThrow(() -> new RuntimeException("User Not Found"));
 
-        user.setGender(gender);
-        user.setOrientation(orientation);
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElse(UserProfile.builder().user(user).build());
 
-        userRepository.save(user);
-  }
+        // ===== BASIC =====
+        profile.setDisplayName(displayName);
+        profile.setGender(gender);
+        profile.setOrientation(orientation);
+        profile.setAge(age);
+        profile.setBio(bio);
+        profile.setDob(dob);
 
-  public void uploadImage(Long userId, MultipartFile image){
+        // ===== EXTRA =====
+        profile.setLanguage(language);
+        profile.setAppearance(appearance);
+        profile.setBodyType(bodyType);
+        profile.setHeight(height);
+        profile.setEnglishLevel(englishLevel);
+        profile.setEthnicity(ethnicity);
+        profile.setLookingFor(lookingFor);
+        profile.setSmoke(smoke);
+        profile.setDrink(drink);
+
+        // ===== IMAGE =====
+        String fileName = saveImage(photo);
+        if (fileName != null) {
+            profile.setProfileImageUrl("/uploads/" + fileName);
+        }
+
+        userProfileRepository.save(profile);
+    }
+
+    // ================== UPLOAD MULTIPLE IMAGES ==================
+    public void uploadImage(Long userId, MultipartFile image){
+
+        if (image == null || image.isEmpty()) {
+            throw new RuntimeException("Image is required");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not Found"));
 
-        try{
-            File dir = new File("/upload/");
-            if(!dir.exists()) dir.mkdirs();
+        String fileName = saveImage(image);
 
-            String fileName = UUID.randomUUID() + "_" +image.getOriginalFilename();
-            Path path = Paths.get("uploads/" + fileName);
-
-            Files.write(path, image.getBytes());
-
-            String imageUrl = "http://localhost:9092/uploads/" + fileName;
-
-            UserImage userImage = UserImage.builder()
-                    .imageUrl(imageUrl)
-                    .user(user)
-                    .build();
-
-            userImageRepository.save(userImage);
-        } catch (Exception e)  {
+        if (fileName == null) {
             throw new RuntimeException("Image upload failed");
         }
-  }
 
-  // Get All images of user
+        UserImage userImage = UserImage.builder()
+                .imageUrl("/uploads/" + fileName)
+                .fileName(fileName)
+                .user(user)
+                .build();
+
+        userImageRepository.save(userImage);
+    }
+
+    // ================== GET ALL IMAGES ==================
     public List<UserImage> getAllImage(Long userId){
         return userImageRepository.findByUserId(userId);
     }
 
-    // Delete Photo ( DB + file)
+    // ================== DELETE IMAGE ==================
     public String deleteImage(Long imageId){
 
         UserImage userImage = userImageRepository.findById(imageId)
-                .orElseThrow(() -> new RuntimeException("Image not found "));
+                .orElseThrow(() -> new RuntimeException("Image not found"));
 
         try{
-            // delete file from folder
             Path path = Paths.get(uploadDir + userImage.getFileName());
-            Files.deleteIfExists(path);
 
-            // delete from DB
+            Files.deleteIfExists(path);
             userImageRepository.delete(userImage);
 
             return "Image deleted successfully";
+
         } catch (Exception e) {
             throw new RuntimeException("Image delete failed");
         }
     }
 
-    // Set Profile Photo
+    // ================== SET PROFILE PHOTO ==================
     public String setProfilePhoto(Long userId, Long imageId){
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Not Found"));
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
 
-        // get all images and set false
+        // reset all
         List<UserImage> images = userImageRepository.findByUserId(userId);
         for(UserImage img : images) {
             img.setProfile(false);
         }
-
         userImageRepository.saveAll(images);
 
-        // Set selected images as profile
+        // select new
         UserImage selectedImage = userImageRepository.findById(imageId)
-                .orElseThrow(() -> new RuntimeException("Image not found "));
+                .orElseThrow(() -> new RuntimeException("Image not found"));
 
         if(!selectedImage.getUser().getId().equals(userId)){
-            throw new RuntimeException("This image does not belong to this user");
+            throw new RuntimeException("Invalid image for this user");
         }
 
         selectedImage.setProfile(true);
         userImageRepository.save(selectedImage);
 
-        // update user main profile image url
-        user.setProfileImageUrl(selectedImage.getImageUrl());
-        userRepository.save(user);
+        profile.setProfileImageUrl(selectedImage.getImageUrl());
+        userProfileRepository.save(profile);
 
         return "Profile photo updated";
     }
 
+    public void saveGenderOrientation(Long userId, String gender, String orientation){
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User Not Found"));
+
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElse(UserProfile.builder().user(user).build());
+
+        profile.setGender(gender);
+        profile.setOrientation(orientation);
+
+        userProfileRepository.save(profile);
+    }
 }
