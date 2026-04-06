@@ -1,6 +1,7 @@
 package com.dta.Dating_App.controller;
 
 
+import com.dta.Dating_App.DTO.UserCardDTO;
 import com.dta.Dating_App.entitys.UserProfile;
 import com.dta.Dating_App.services.HomePage;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class HomeController {
     @GetMapping("/{userId}")
     public ResponseEntity<?> getHomeUsers(@PathVariable String userId) {
 
-        List<UserProfile> users = homePage.getOppositeUsers(userId);
+        List<UserCardDTO> users = homePage.getOppositeUsers(userId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", true);
