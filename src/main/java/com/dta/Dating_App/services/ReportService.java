@@ -1,5 +1,6 @@
 package com.dta.Dating_App.services;
 
+import com.dta.Dating_App.DTO.UserReportResponse;
 import com.dta.Dating_App.entitys.User;
 import com.dta.Dating_App.entitys.UserReport;
 import com.dta.Dating_App.repository.UserReportRepository;
@@ -52,13 +53,35 @@ public class ReportService {
     }
 
     //  Reports against a user (Admin)
-    public List<UserReport> getReportsAgainstUser(Long userId) {
-        return userReportRepository.findByReportedUserIdOrderByCreatedAtDesc(userId);
+    public List<UserReportResponse> getReportsAgainstUser(Long userId) {
+
+        List<UserReport> reports = userReportRepository
+                .findByReportedUserIdOrderByCreatedAtDesc(userId);
+
+        return reports.stream().map(r -> new UserReportResponse(
+                r.getId(),
+                r.getReportedUser().getId(),
+                r.getReportedBy().getId(),
+                r.getReason(),
+                r.getMessage(),
+                r.getCreatedAt().toString()
+        )).toList();
     }
 
     //  Reports created by a user
-    public List<UserReport> getMyReports(Long userId) {
-        return userReportRepository.findByReportedByIdOrderByCreatedAtDesc(userId);
+    public List<UserReportResponse> getMyReports(Long userId) {
+
+        List<UserReport> reports = userReportRepository
+                .findByReportedByIdOrderByCreatedAtDesc(userId);
+
+        return reports.stream().map(r -> new UserReportResponse(
+                r.getId(),
+                r.getReportedUser().getId(),
+                r.getReportedBy().getId(),
+                r.getReason(),
+                r.getMessage(),
+                r.getCreatedAt().toString()
+        )).toList();
     }
 
     //  Resolve report (Admin)

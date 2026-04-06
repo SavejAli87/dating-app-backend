@@ -19,16 +19,32 @@ public class SubscriptionService {
     private final UserRepository userRepository;
     private final SubscriptionRepository subscriptionRepository;
 
-    public String sendRequest(Long senderId, Long receiverId){
+    public String sendRequest(String senderId, String receiverId){
 
+        // ❌ Same user check
+        if(senderId.equals(receiverId)){
+            return "You cannot send request to yourself";
+        }
+
+        // ✅ Get sender
+        User sender = userRepository.findByUserId(senderId)
+                .orElseThrow(() -> new RuntimeException("Sender not found"));
+
+        // ✅ Get receiver
+        User receiver = userRepository.findByUserId(receiverId)
+                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+
+        // 🔥 Create request
         SubscriptionRequest req = SubscriptionRequest.builder()
-                .senderId(senderId)
-                .receiverId(receiverId)
+                .senderId(sender.getUserId())   // SA1000
+                .receiverId(receiver.getUserId())
                 .status("PENDING")
+               // .createdAt(LocalDateTime.now())
                 .build();
 
         subscriptionRequestRepository.save(req);
-        return "Subscription request sent ";
+
+        return "Subscription request sent";
     }
 
     public String respond(Long requestId, String status){
@@ -44,11 +60,12 @@ public class SubscriptionService {
 
     //Subscription Free, Gold, Premium
 
-    public String activate(Long userId, String plan){
+    public String activate(String userId, String plan){
 
-        User user =userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Subscription sub= new Subscription();
+        Subscription sub = new Subscription();
         sub.setUser(user);
         sub.setPlan(plan);
         sub.setActive(true);
@@ -59,7 +76,11 @@ public class SubscriptionService {
         return "Subscription activated";
     }
 
-    public Subscription getStatus(Long userId){
-        return subscriptionRepository.findByUserIdAndActiveTrue(userId);
+    public Subscription getStatus(String userId){
+
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return subscriptionRepository.findByUserAndActiveTrue(user);
     }
 }

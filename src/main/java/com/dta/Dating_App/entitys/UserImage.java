@@ -1,5 +1,6 @@
 package com.dta.Dating_App.entitys;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,7 +28,8 @@ public class UserImage {
     private LocalDateTime uploadedAt;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "userId")
+    @JsonIgnore
     private User user;
 
 }

@@ -22,8 +22,21 @@ public class UserProfile {
 
     // 🔗 LINK WITH USER
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JoinColumn(name = "user_id", referencedColumnName = "userId", unique = true)
     private User user;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false, unique = true)
+    private String mobile;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
+    private String role;
+
 
     private String displayName;
     private String gender;
@@ -65,4 +78,6 @@ public class UserProfile {
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    private boolean selfieVerified;
 }

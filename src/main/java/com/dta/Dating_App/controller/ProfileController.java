@@ -1,8 +1,6 @@
 package com.dta.Dating_App.controller;
 
-import com.dta.Dating_App.DTO.GenderOrientationRequest;
-import com.dta.Dating_App.DTO.ProfileRequestDTO;
-import com.dta.Dating_App.DTO.ProfileResponse;
+import com.dta.Dating_App.DTO.*;
 import com.dta.Dating_App.services.ProfileService;
 import com.dta.Dating_App.services.ViewProfileService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +25,7 @@ public class ProfileController {
 
             @PathVariable Long userId,
 
-            @RequestPart("data") ProfileRequestDTO dto,
+            @ModelAttribute ProfileRequestDTO dto,
 
             @RequestPart(value = "photo", required = false) MultipartFile photo
     ) {
@@ -104,7 +102,65 @@ public class ProfileController {
     @PutMapping("/selfie/verify/{userId}")
     public ResponseEntity<String> verifySelfie(@PathVariable Long userId) {
 
-        // Future: Admin / AI verify logic
-        return ResponseEntity.ok("Selfie verified");
+        String response = profileService.verifySelfie(userId);
+
+        return ResponseEntity.ok(response);
     }
+
+    // profile update basic
+
+    @PutMapping("/update-basic")
+    public ResponseEntity<String> updateBasic(@RequestBody UpdateBasicDTO dto){
+
+        profileService.updateBasic(
+                dto.getUserId(),
+                dto.getDisplayName(),
+                dto.getBio(),
+                dto.getAge()
+        );
+
+        return ResponseEntity.ok("Basic profile updated");
+    }
+
+    // update details
+
+
+    @PutMapping("/update-details")
+    public ResponseEntity<String> updateDetails(@RequestBody UpdateDetailsDTO dto){
+
+        profileService.updateDetails(
+                dto.getUserId(),
+                dto.getLanguage(),
+                dto.getBodyType(),
+                dto.getAppearance(),
+                dto.getHeight()
+        );
+
+        return ResponseEntity.ok("Details updated");
+    }
+
+//   update preferences
+@PutMapping("/update-preferences")
+public ResponseEntity<String> updatePreferences(@RequestBody UpdatePreferencesDTO dto){
+
+    profileService.updatePreferences(
+            dto.getUserId(),
+            dto.getLookingFor(),
+            dto.getSmoke(),
+            dto.getDrink()
+    );
+
+    return ResponseEntity.ok("Preferences updated");
+}
+
+    // get full profile
+
+    @GetMapping("/completion/{userId}")
+    public ResponseEntity<Integer> getProfileCompletion(@PathVariable Long userId) {
+
+        int completion = profileService.getProfileCompletion(userId);
+
+        return ResponseEntity.ok(completion);
+    }
+
 }

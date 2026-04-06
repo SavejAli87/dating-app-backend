@@ -5,14 +5,14 @@ import lombok.Data;
 @Data
 public class SearchFilterRequest {
 
+    private String name;
+    private String gender;
     private Integer minAge;
     private Integer maxAge;
-
     private String language;
     private String ethnicity;
     private String smoke;
     private String drink;
-
-    private  String sortBy;
+    private String sortBy;
 
 }

@@ -27,5 +27,6 @@ public class UserReport {
     private String reason;
     private  String status; //Pending , Reviewed
 
+    private String message;
     private LocalDateTime createdAt;
 }

@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface SubscriptionRequestRepository extends JpaRepository<SubscriptionRequest, Long> {
 
-    List<SubscriptionRequest> findByReceiverId(Long receiverId);
+    //List<SubscriptionRequest> findByReceiverId(String receiverId);
 
 }

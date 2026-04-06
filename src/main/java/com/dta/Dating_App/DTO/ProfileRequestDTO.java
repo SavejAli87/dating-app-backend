@@ -12,6 +12,10 @@ public class ProfileRequestDTO {
     private Integer age;
     private String bio;
 
+    private String password;
+    private  String name;
+    private String mobile;
+
     @Schema(example = "2002-05-15")
     private String dob;
 

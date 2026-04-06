@@ -19,7 +19,7 @@ public class Support {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "userId",nullable = false)
     private User user;
 
     private String subject;

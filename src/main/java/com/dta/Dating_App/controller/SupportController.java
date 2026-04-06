@@ -1,5 +1,6 @@
 package com.dta.Dating_App.controller;
 
+import com.dta.Dating_App.DTO.SupportRequestDTO;
 import com.dta.Dating_App.entitys.Support;
 import com.dta.Dating_App.services.SupportService;
 import lombok.RequiredArgsConstructor;
@@ -17,36 +18,31 @@ public class SupportController {
 
     private final SupportService supportService;
 
-    // create support ticket
     @PostMapping("/create")
     public ResponseEntity<String> createTicket(
-            @RequestBody Map<String, String> body
-            ){
-        Long userId = Long.valueOf(body.get("userId"));
-        String subject = body.get("Subject");
-        String message = body.get("message");
-        return ResponseEntity.ok(supportService.CreateTicket(userId,subject,message));
+            @RequestBody SupportRequestDTO request
+    ){
+        return ResponseEntity.ok(
+                supportService.CreateTicket(
+                        request.getUserId(),
+                        request.getSubject(),
+                        request.getMessage()
+                )
+        );
     }
 
-    // Get my tickets
     @GetMapping("/my")
     public ResponseEntity<List<Support>> myTickets(@RequestParam Long userId){
         return ResponseEntity.ok(supportService.getMyTickets(userId));
     }
 
-    // admin ; get Tickets by status
     @GetMapping("/status")
-    public ResponseEntity<List<Support>> byStatus(
-            @RequestParam String status
-    ){
+    public ResponseEntity<List<Support>> byStatus(@RequestParam String status){
         return ResponseEntity.ok(supportService.getTicketByStatus(status));
     }
 
-    // close ticket
     @PutMapping("/close/{ticketId}")
-    public ResponseEntity<String>  close(
-            @PathVariable Long ticketId
-    ){
+    public ResponseEntity<String> close(@PathVariable Long ticketId){
         return ResponseEntity.ok(supportService.closeTicket(ticketId));
     }
 }

@@ -14,37 +14,43 @@ public class SubscriptionController {
     private final SubscriptionService subscriptionService;
 
     // Send Subscription request
-
     @PostMapping("/request")
     public ResponseEntity<String> sendRequest(
-            @RequestParam Long senderId,
-            @RequestParam Long receiverId
+            @RequestParam String senderId,
+            @RequestParam String receiverId
     ){
-        return ResponseEntity.ok(subscriptionService.sendRequest(senderId, receiverId));
+        return ResponseEntity.ok(
+                subscriptionService.sendRequest(senderId, receiverId)
+        );
     }
 
-    // Respond to request (Approved / Rejected)
+    // Respond to request (APPROVED / REJECTED)
     @PutMapping("/respond")
     public ResponseEntity<String> respond(
             @RequestParam Long requestId,
             @RequestParam String status
     ){
-        return ResponseEntity.ok(subscriptionService.respond(requestId, status));
+        return ResponseEntity.ok(
+                subscriptionService.respond(requestId, status)
+        );
     }
 
-    //Activate Subscription (Free / gold/ Premium)
-
+    // Activate Subscription
     @PostMapping("/activate")
     public ResponseEntity<String> activate(
-            @RequestParam Long userId,
+            @RequestParam String userId,
             @RequestParam String plan
     ){
-        return ResponseEntity.ok(subscriptionService.activate(userId, plan));
+        return ResponseEntity.ok(
+                subscriptionService.activate(userId, plan)
+        );
     }
 
-    //Get current subscription status
+    // Get current subscription status
     @GetMapping("/status")
-    public ResponseEntity<?> status(@RequestParam Long userId){
-        return ResponseEntity.ok(subscriptionService.getStatus(userId));
+    public ResponseEntity<?> status(@RequestParam String userId){
+        return ResponseEntity.ok(
+                subscriptionService.getStatus(userId)
+        );
     }
 }

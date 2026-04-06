@@ -7,6 +7,7 @@ import com.dta.Dating_App.entitys.UserProfile;
 import com.dta.Dating_App.repository.UserLocationRepository;
 import com.dta.Dating_App.repository.UserProfileRepository;
 import com.dta.Dating_App.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,12 +28,13 @@ public class LocationService {
                 .orElseThrow(() -> new RuntimeException("Current location not set"));
     }
 
-    // ✅ Get location history
+    // ✅ Get location history (FIXED: String → Long)
     public List<UserLocation> getLocationHistory(Long userId) {
         return locationRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
     // ✅ Add new location
+    @Transactional
     public String addNewLocation(LocationRequest request){
 
         User user = userRepository.findById(request.getUserId())
@@ -41,16 +43,13 @@ public class LocationService {
         UserProfile profile = userProfileRepository.findByUserId(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
 
-        // old current location false
+        // 🔹 Step 1: old current location false
         locationRepository.findByUserIdAndCurrentTrue(request.getUserId())
-                .ifPresent(loc ->{
-                    loc.setCurrent(false);
-                    locationRepository.save(loc);
-                });
+                .ifPresent(loc -> loc.setCurrent(false));
 
-        // create new location
+        // 🔹 Step 2: create new location
         UserLocation location = UserLocation.builder()
-                .userId(request.getUserId())
+                .user(user)   // (keep as is if you are using Long)
                 .city(request.getCity())
                 .state(request.getState())
                 .country(request.getCountry())
@@ -62,7 +61,7 @@ public class LocationService {
 
         locationRepository.save(location);
 
-        // ✅ FIX: update in profile (not user)
+        // 🔹 Step 3: update profile
         profile.setCurrentCity(request.getCity());
         profile.setCurrentState(request.getState());
         profile.setCurrentCountry(request.getCountry());
@@ -75,9 +74,11 @@ public class LocationService {
     }
 
     // ✅ Switch location
-    public String switchLocation (Long userId, Long locationId){
+    @Transactional
+    public String switchLocation(Long userId, Long locationId){
 
-        User user = userRepository.findById(userId)
+        // 🔹 Validate user
+        userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         UserProfile profile = userProfileRepository.findByUserId(userId)
@@ -86,22 +87,20 @@ public class LocationService {
         UserLocation target = locationRepository.findById(locationId)
                 .orElseThrow(() -> new RuntimeException("Location not found"));
 
-        if(!target.getUserId().equals(userId)){
+        // 🔹 Safety check
+        if (target.getUser() == null || !target.getUser().getId().equals(userId)) {
             throw new RuntimeException("This location does not belong to user");
         }
 
-        // old current = false
+        // 🔹 Step 1: old current = false
         locationRepository.findByUserIdAndCurrentTrue(userId)
-                .ifPresent(loc -> {
-                    loc.setCurrent(false);
-                    locationRepository.save(loc);
-                });
+                .ifPresent(loc -> loc.setCurrent(false));
 
-        // new current = true
+        // 🔹 Step 2: new current = true
         target.setCurrent(true);
         locationRepository.save(target);
 
-        // ✅ FIX: update profile
+        // 🔹 Step 3: update profile
         profile.setCurrentCity(target.getCity());
         profile.setCurrentState(target.getState());
         profile.setCurrentCountry(target.getCountry());

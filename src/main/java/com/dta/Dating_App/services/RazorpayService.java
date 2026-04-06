@@ -95,7 +95,7 @@ public class RazorpayService {
         paymentRepository.save(payment);
 
         subscriptionService.activate(
-                payment.getUser().getId(),
+                payment.getUser().getUserId(),
                 payment.getPlan()
         );
     }

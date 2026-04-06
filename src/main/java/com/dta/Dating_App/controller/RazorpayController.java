@@ -1,11 +1,9 @@
 package com.dta.Dating_App.controller;
 
-import com.dta.Dating_App.repository.PaymentRepository;
+
 import com.dta.Dating_App.services.RazorpayService;
 import com.razorpay.Order;
-import com.razorpay.Utils;
 import lombok.RequiredArgsConstructor;
-import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

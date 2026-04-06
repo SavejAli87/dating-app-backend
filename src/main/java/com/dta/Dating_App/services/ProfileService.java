@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,41 +25,46 @@ public class ProfileService {
     private final UserImageRepository userImageRepository;
     private final UserProfileRepository userProfileRepository;
 
-    private final String uploadDir = "uploads/";
+    private final String uploadDir = "amara/";
 
-    // ================== COMMON IMAGE SAVE ==================
-    private String saveImage(MultipartFile file) {
+    // ================== IMAGE SAVE ==================
+    private String saveImage(MultipartFile file, String userId) {
         try {
 
             if (file == null || file.isEmpty()) {
                 throw new RuntimeException("File is empty");
             }
 
-            String contentType = file.getContentType();
-            if (contentType == null || !contentType.startsWith("image/")) {
+            if (!file.getContentType().startsWith("image/")) {
                 throw new RuntimeException("Only image files allowed");
             }
 
-            if (file.getSize() > 2 * 1024 * 1024) {
-                throw new RuntimeException("File too large (Max 2MB)");
+            if (file.getSize() > 10 * 1024 * 1024) {
+                throw new RuntimeException("Max 2MB allowed");
             }
 
-            File dir = new File(uploadDir);
+            //  CHANGE: user-wise folder
+            String folder = uploadDir + userId + "/";
+            File dir = new File(folder);
             if (!dir.exists()) dir.mkdirs();
 
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(uploadDir + fileName);
+            String ext = file.getOriginalFilename()
+                    .substring(file.getOriginalFilename().lastIndexOf("."));
 
+            String fileName = "img_" + System.currentTimeMillis() + ext;
+
+            Path path = Paths.get(folder + fileName);
             Files.write(path, file.getBytes());
 
-            return fileName;
+            //  CHANGE: return user folder path
+            return userId + "/" + fileName;
 
         } catch (Exception e) {
-            throw new RuntimeException("Image upload failed");
+            throw new RuntimeException("Upload failed: " + e.getMessage());
         }
     }
 
-    // ================== FULL PROFILE SETUP ==================
+    // ================== PROFILE SETUP ==================
     public void setupProfile(
             Long userId,
             String displayName,
@@ -87,80 +91,80 @@ public class ProfileService {
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElse(UserProfile.builder().user(user).build());
 
-        // ===== BASIC =====
-        profile.setDisplayName(displayName);
-        profile.setGender(gender);
-        profile.setOrientation(orientation);
-        profile.setAge(age);
-        profile.setBio(bio);
-        profile.setDob(dob);
+        if (displayName != null) profile.setDisplayName(displayName);
+        if (gender != null) profile.setGender(gender);
+        if (orientation != null) profile.setOrientation(orientation);
+        if (age != null) profile.setAge(age);
+        if (bio != null) profile.setBio(bio);
+        if (dob != null) profile.setDob(dob);
 
-        // ===== EXTRA =====
-        profile.setLanguage(language);
-        profile.setAppearance(appearance);
-        profile.setBodyType(bodyType);
-        profile.setHeight(height);
-        profile.setEnglishLevel(englishLevel);
-        profile.setEthnicity(ethnicity);
-        profile.setLookingFor(lookingFor);
-        profile.setSmoke(smoke);
-        profile.setDrink(drink);
+        if (language != null) profile.setLanguage(language);
+        if (appearance != null) profile.setAppearance(appearance);
+        if (bodyType != null) profile.setBodyType(bodyType);
+        if (height != null) profile.setHeight(height);
+        if (englishLevel != null) profile.setEnglishLevel(englishLevel);
+        if (ethnicity != null) profile.setEthnicity(ethnicity);
+        if (lookingFor != null) profile.setLookingFor(lookingFor);
+        if (smoke != null) profile.setSmoke(smoke);
+        if (drink != null) profile.setDrink(drink);
 
-        // ===== IMAGE =====
-        String fileName = saveImage(photo);
-        if (fileName != null) {
-            profile.setProfileImageUrl("/uploads/" + fileName);
+        //  FIXED
+        if (photo != null && !photo.isEmpty()) {
+            String fileName = saveImage(photo, user.getUserId());
+            profile.setProfileImageUrl("/amara/" + fileName);
         }
 
         userProfileRepository.save(profile);
     }
 
-    // ================== UPLOAD MULTIPLE IMAGES ==================
+    // ================== UPLOAD IMAGE ==================
     public void uploadImage(Long userId, MultipartFile image){
 
         if (image == null || image.isEmpty()) {
-            throw new RuntimeException("Image is required");
+            throw new RuntimeException("Image required");
+        }
+
+        List<UserImage> list = userImageRepository.findByUserId(userId);
+        if(list.size() >= 5){
+            throw new RuntimeException("Max 5 images allowed");
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not Found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String fileName = saveImage(image);
+        String fileName = saveImage(image, user.getUserId());
 
-        if (fileName == null) {
-            throw new RuntimeException("Image upload failed");
-        }
-
-        UserImage userImage = UserImage.builder()
-                .imageUrl("/uploads/" + fileName)
+        UserImage img = UserImage.builder()
+                .imageUrl("/amara/" + fileName)
                 .fileName(fileName)
                 .user(user)
+                .isProfile(false) //  FIX
                 .build();
 
-        userImageRepository.save(userImage);
+        userImageRepository.save(img);
     }
 
-    // ================== GET ALL IMAGES ==================
+    // ================== GET IMAGES ==================
     public List<UserImage> getAllImage(Long userId){
         return userImageRepository.findByUserId(userId);
     }
 
-    // ================== DELETE IMAGE ==================
+    // ================== DELETE ==================
     public String deleteImage(Long imageId){
 
-        UserImage userImage = userImageRepository.findById(imageId)
-                .orElseThrow(() -> new RuntimeException("Image not found"));
+        UserImage img = userImageRepository.findById(imageId)
+                .orElseThrow(() -> new RuntimeException("Not found"));
 
         try{
-            Path path = Paths.get(uploadDir + userImage.getFileName());
-
+            //  CHANGE: correct full path (user folder)
+            Path path = Paths.get(uploadDir + img.getFileName());
             Files.deleteIfExists(path);
-            userImageRepository.delete(userImage);
 
-            return "Image deleted successfully";
+            userImageRepository.delete(img);
+            return "Deleted";
 
         } catch (Exception e) {
-            throw new RuntimeException("Image delete failed");
+            throw new RuntimeException("Delete failed");
         }
     }
 
@@ -170,30 +174,27 @@ public class ProfileService {
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
 
-        // reset all
-        List<UserImage> images = userImageRepository.findByUserId(userId);
-        for(UserImage img : images) {
-            img.setProfile(false);
-        }
-        userImageRepository.saveAll(images);
+        List<UserImage> list = userImageRepository.findByUserId(userId);
+        list.forEach(i -> i.setProfile(false));
+        userImageRepository.saveAll(list);
 
-        // select new
-        UserImage selectedImage = userImageRepository.findById(imageId)
+        UserImage img = userImageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found"));
 
-        if(!selectedImage.getUser().getId().equals(userId)){
-            throw new RuntimeException("Invalid image for this user");
+        if(!img.getUser().getId().equals(userId)){
+            throw new RuntimeException("Invalid image");
         }
 
-        selectedImage.setProfile(true);
-        userImageRepository.save(selectedImage);
+        img.setProfile(true);
+        userImageRepository.save(img);
 
-        profile.setProfileImageUrl(selectedImage.getImageUrl());
+        profile.setProfileImageUrl(img.getImageUrl());
         userProfileRepository.save(profile);
 
-        return "Profile photo updated";
+        return "Profile updated";
     }
 
+    // ================== GENDER ==================
     public void saveGenderOrientation(Long userId, String gender, String orientation){
 
         User user = userRepository.findById(userId)
@@ -202,9 +203,104 @@ public class ProfileService {
         UserProfile profile = userProfileRepository.findByUserId(userId)
                 .orElse(UserProfile.builder().user(user).build());
 
-        profile.setGender(gender);
-        profile.setOrientation(orientation);
+        if(gender != null) profile.setGender(gender);
+        if(orientation != null) profile.setOrientation(orientation);
 
         userProfileRepository.save(profile);
     }
+
+    // ================== VERIFY SELFIE ==================
+    public String verifySelfie(Long userId){
+
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+
+        profile.setSelfieVerified(true);
+        userProfileRepository.save(profile);
+
+        return "Verified";
+    }
+
+    // ================== UPDATE BASIC ==================
+    public void updateBasic(Long userId, String name, String bio, Integer age){
+
+        UserProfile p = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+
+        if(name != null) p.setDisplayName(name);
+        if(bio != null) p.setBio(bio);
+        if(age != null) p.setAge(age);
+
+        userProfileRepository.save(p);
+    }
+
+    // ================== UPDATE DETAILS ==================
+    public void updateDetails(Long userId, String language, String bodyType, String appearance, Integer height){
+
+        UserProfile p = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+
+        if(language != null) p.setLanguage(language);
+        if(bodyType != null) p.setBodyType(bodyType);
+        if(appearance != null) p.setAppearance(appearance);
+        if(height != null) p.setHeight(height);
+
+        userProfileRepository.save(p);
+    }
+
+    // ================== UPDATE PREF ==================
+    public void updatePreferences(Long userId, String lookingFor, String smoke, String drink){
+
+        UserProfile p = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+
+        if(lookingFor != null) p.setLookingFor(lookingFor);
+        if(smoke != null) p.setSmoke(smoke);
+        if(drink != null) p.setDrink(drink);
+
+        userProfileRepository.save(p);
+    }
+
+    // ================== COMPLETION ==================
+    public int getProfileCompletion(Long userId){
+
+        UserProfile p = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+
+        int total = 8;
+        int filled = 0;
+
+        if(p.getDisplayName()!=null) filled++;
+        if(p.getBio()!=null) filled++;
+        if(p.getGender()!=null) filled++;
+        if(p.getDob()!=null) filled++;
+        if(p.getLanguage()!=null) filled++;
+        if(p.getAppearance()!=null) filled++;
+        if(p.getLookingFor()!=null) filled++;
+        if(p.getProfileImageUrl()!=null) filled++;
+
+        return (filled * 100) / total;
+    }
+
+    // updated image code
+
+
+    public void uploadImageByUserCode(String userCode, MultipartFile image){
+
+        User user = userRepository.findByUserId(userCode)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        uploadImage(user.getId(), image);
+    }
+
+    public List<UserImage> getAllImageByUserCode(String userCode){
+
+        User user = userRepository.findByUserId(userCode)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return getAllImage(user.getId());
+    }
+
+
 }
+

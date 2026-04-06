@@ -10,5 +10,6 @@ public class RegisterRequest {
     private String mobile;
     private String password;
     private String confirmPassword;
-    private String otp;
+    private String gender;
+    //private String otp;
 }

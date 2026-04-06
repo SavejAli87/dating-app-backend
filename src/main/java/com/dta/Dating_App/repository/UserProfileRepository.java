@@ -14,4 +14,14 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
     boolean existsByDisplayName(String displayName);
 
 
+
+    Optional<UserProfile> findByUser_UserId(String userId);
+
+    List<UserProfile> findByGender(String gender);
+
+    List<UserProfile> findByGenderAndUser_UserIdNot(String gender, String userId);
+
+
+
+
 }

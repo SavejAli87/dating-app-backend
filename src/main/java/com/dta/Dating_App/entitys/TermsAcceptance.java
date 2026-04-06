@@ -19,7 +19,7 @@ public class TermsAcceptance {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "userId")
     private User user;
 
     private LocalDateTime acceptedAt;

@@ -8,9 +8,17 @@ import java.util.Optional;
 
 public interface UserLocationRepository extends JpaRepository<UserLocation, Long> {
 
+    // ✅ Get all locations of a user
     List<UserLocation> findByUserIdOrderByCreatedAtDesc(Long userId);
 
+    // ✅ Get current location
     Optional<UserLocation> findByUserIdAndCurrentTrue(Long userId);
 
-    boolean existsByUserIdAndCityAndStateAndCountry(Long userId, String city, String state, String country);
+    // ✅ Check duplicate location
+    boolean existsByUserIdAndCityAndStateAndCountry(
+            Long userId,
+            String city,
+            String state,
+            String country
+    );
 }
