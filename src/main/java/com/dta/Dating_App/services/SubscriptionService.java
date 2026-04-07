@@ -1,86 +1,67 @@
 package com.dta.Dating_App.services;
 
-import com.dta.Dating_App.entitys.Subscription;
-import com.dta.Dating_App.entitys.SubscriptionRequest;
-import com.dta.Dating_App.entitys.User;
-import com.dta.Dating_App.repository.SubscriptionRepository;
-import com.dta.Dating_App.repository.SubscriptionRequestRepository;
-import com.dta.Dating_App.repository.UserRepository;
+import com.dta.Dating_App.entitys.Subscriber;
+import com.dta.Dating_App.entitys.SubscriptionDetails;
+import com.dta.Dating_App.repository.SubscriberRepository;
+import com.dta.Dating_App.repository.SubscriptionDetailsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
 
-    private final SubscriptionRequestRepository subscriptionRequestRepository;
-    private final UserRepository userRepository;
-    private final SubscriptionRepository subscriptionRepository;
+    private final SubscriberRepository subscriberRepository;
+    private final SubscriptionDetailsRepository detailsRepository;
 
-    public String sendRequest(String senderId, String receiverId){
+    //  Activate Plan
+    public String activatePlan(String userId, String type) {
 
-        // ❌ Same user check
-        if(senderId.equals(receiverId)){
-            return "You cannot send request to yourself";
-        }
+        SubscriptionDetails details = detailsRepository.findByType(type)
+                .orElseThrow(() -> new RuntimeException("Plan not found"));
 
-        // ✅ Get sender
-        User sender = userRepository.findByUserId(senderId)
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
+        Subscriber sub = new Subscriber();
 
-        // ✅ Get receiver
-        User receiver = userRepository.findByUserId(receiverId)
-                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+        sub.setUserId(userId);
+        sub.setType(details.getType());
+        sub.setPrice(details.getAmount());
+        sub.setContactView(Long.valueOf(details.getContactView()));
+        sub.setDuration(details.getDuration());
 
-        // 🔥 Create request
-        SubscriptionRequest req = SubscriptionRequest.builder()
-                .senderId(sender.getUserId())   // SA1000
-                .receiverId(receiver.getUserId())
-                .status("PENDING")
-               // .createdAt(LocalDateTime.now())
-                .build();
+        sub.setStartDate(LocalDate.now());
+        sub.setEndDate(LocalDate.now().plusDays(details.getDuration()));
 
-        subscriptionRequestRepository.save(req);
+        sub.setStartTime(LocalTime.now());
+        sub.setEndTime(LocalTime.now());
 
-        return "Subscription request sent";
+        sub.setEventType("PLAN_ACTIVATED");
+        sub.setSubscriptionId(UUID.randomUUID().toString());
+
+        sub.setDescription(details.getDescription());
+        sub.setPlanType(details.getActivePlaneName());
+        sub.setRemainsDays(details.getDuration());
+
+        subscriberRepository.save(sub);
+
+        return "Plan Activated Successfully";
     }
 
-    public String respond(Long requestId, String status){
-
-        SubscriptionRequest req = subscriptionRequestRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Request not found"));
-
-        req.setStatus(status);
-        subscriptionRequestRepository.save(req);
-
-        return "Request " + status + " ";
+    //  Get Active Plan
+    public Subscriber getUserPlan(String userId) {
+        return subscriberRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("No active plan found"));
     }
 
-    //Subscription Free, Gold, Premium
+    //  Check Remaining Days
+    public Integer getRemainingDays(String userId) {
 
-    public String activate(String userId, String plan){
+        Subscriber sub = getUserPlan(userId);
 
-        User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Subscription sub = new Subscription();
-        sub.setUser(user);
-        sub.setPlan(plan);
-        sub.setActive(true);
-        sub.setStartDate(LocalDateTime.now());
-        sub.setEndDate(LocalDateTime.now().plusMinutes(1));
-
-        subscriptionRepository.save(sub);
-        return "Subscription activated";
-    }
-
-    public Subscription getStatus(String userId){
-
-        User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return subscriptionRepository.findByUserAndActiveTrue(user);
+        long days = LocalDate.now().until(sub.getEndDate()).getDays();
+        return (int) days;
     }
 }

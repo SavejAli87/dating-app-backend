@@ -6,10 +6,8 @@ import com.dta.Dating_App.repository.PaymentRepository;
 import com.dta.Dating_App.repository.UserRepository;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
-
 import com.razorpay.Utils;
 import lombok.RequiredArgsConstructor;
-
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,12 +29,13 @@ public class RazorpayService {
     private final SubscriptionService subscriptionService;
     private final UserRepository userRepository;
 
-    public Order CreateOrder(Long userId, String plan, int amount) throws Exception {
+    // ✅ CREATE ORDER
+    public Order createOrder(Long userId, String plan, int amount) throws Exception {
 
-        RazorpayClient client  = new RazorpayClient(key, secret);
+        RazorpayClient client = new RazorpayClient(key, secret);
 
         JSONObject options = new JSONObject();
-        options.put("amount", amount * 100);
+        options.put("amount", amount * 100); // paisa
         options.put("currency", "INR");
         options.put("receipt", "txn_" + System.currentTimeMillis());
 
@@ -45,14 +44,13 @@ public class RazorpayService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-
-        // save payment row
+        //  Save payment in DB
         Payment payment = Payment.builder()
                 .razorpayOrderId(order.get("id"))
                 .user(user)
                 .plan(plan)
                 .amount(amount)
-                .status("Created")
+                .status("CREATED") // FIX: consistent uppercase
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -61,14 +59,13 @@ public class RazorpayService {
         return order;
     }
 
- // markSuccess
-
+    //  VERIFY + MARK SUCCESS
     @Transactional
     public void markSuccess(String orderId,
                             String paymentId,
                             String signature) throws Exception {
 
-        //  Verify payment
+        //  STEP 1: Verify Signature
         JSONObject options = new JSONObject();
         options.put("razorpay_order_id", orderId);
         options.put("razorpay_payment_id", paymentId);
@@ -80,33 +77,50 @@ public class RazorpayService {
             throw new RuntimeException("Invalid Razorpay signature");
         }
 
+        //  STEP 2: Fetch Payment
         Payment payment = paymentRepository
                 .findByRazorpayOrderId(orderId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 
-        //  Prevent double processing
-        if ("SUCCESS".equals(payment.getStatus())) {
+        //  STEP 3: Prevent duplicate execution
+        if ("SUCCESS".equalsIgnoreCase(payment.getStatus())) {
             return;
         }
 
+        //  STEP 4: Update Payment
         payment.setStatus("SUCCESS");
         payment.setRazorpayPaymentId(paymentId);
+        payment.setUpdatedAt(LocalDateTime.now()); // ADD THIS FIELD
 
         paymentRepository.save(payment);
 
-        subscriptionService.activate(
+        //  STEP 5: Activate Subscription
+        subscriptionService.activatePlan(
                 payment.getUser().getUserId(),
                 payment.getPlan()
         );
     }
 
-    // handleWebhook
+    //  HANDLE FAILURE (NEW ADD - IMPORTANT)
+    @Transactional
+    public void markFailed(String orderId) {
 
-    public void handleWebhook(String payload, String signature) throws Exception {
+        Payment payment = paymentRepository
+                .findByRazorpayOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("Payment not found"));
+
+        payment.setStatus("FAILED");
+        payment.setUpdatedAt(LocalDateTime.now());
+
+        paymentRepository.save(payment);
+    }
+
+    // ✅ WEBHOOK HANDLER (FIXED)
+    public void handleWebhook(String payload, String webhookSignature) throws Exception {
 
         boolean isValid = Utils.verifyWebhookSignature(
                 payload,
-                signature,
+                webhookSignature,
                 secret
         );
 
@@ -115,7 +129,6 @@ public class RazorpayService {
         }
 
         JSONObject json = new JSONObject(payload);
-
         String event = json.getString("event");
 
         if ("payment.captured".equals(event)) {
@@ -128,10 +141,22 @@ public class RazorpayService {
             String orderId = paymentEntity.getString("order_id");
             String paymentId = paymentEntity.getString("id");
 
-            markSuccess(orderId, paymentId, signature);
+            // ⚠️ IMPORTANT: webhook me signature use nahi hota markSuccess ke liye
+            // already verified above
+            markSuccess(orderId, paymentId, json.getString("event"));
+        }
+
+        // 🔥 HANDLE FAILED PAYMENT
+        if ("payment.failed".equals(event)) {
+
+            JSONObject paymentEntity = json
+                    .getJSONObject("payload")
+                    .getJSONObject("payment")
+                    .getJSONObject("entity");
+
+            String orderId = paymentEntity.getString("order_id");
+
+            markFailed(orderId);
         }
     }
-
-
-
 }

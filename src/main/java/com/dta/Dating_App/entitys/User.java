@@ -48,6 +48,5 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Payment> payments;
 
-    @ManyToOne
-    private Subscription subscriptions;
+
 }
