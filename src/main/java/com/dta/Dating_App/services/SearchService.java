@@ -1,6 +1,7 @@
 package com.dta.Dating_App.services;
 
 import com.dta.Dating_App.DTO.SearchFilterRequest;
+import com.dta.Dating_App.DTO.UserSearchResponse;
 import com.dta.Dating_App.entitys.User;
 import com.dta.Dating_App.entitys.UserProfile;
 import com.dta.Dating_App.repository.UserProfileRepository;
@@ -20,12 +21,12 @@ public class SearchService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
 
-    public List<User> search(SearchFilterRequest request){
+    public List<UserSearchResponse> search(SearchFilterRequest request){
 
-        //  Step 1: fetch all users
+        // Step 1: fetch all users
         List<User> users = userRepository.findAll();
 
-        //  Step 2: preload all profiles (optimization 🔥)
+        // Step 2: preload profiles
         Map<Long, UserProfile> profileMap = userProfileRepository.findAll()
                 .stream()
                 .collect(Collectors.toMap(
@@ -33,15 +34,14 @@ public class SearchService {
                         p -> p
                 ));
 
-        //  Step 3: filtering
+        // Step 3: filtering
         List<User> filteredUsers = users.stream()
                 .filter(user -> {
 
                     UserProfile profile = profileMap.get(user.getId());
                     if (profile == null) return false;
 
-
-                    // 🔹 Gender filter (FIXED)
+                    // 🔹 Gender filter
                     if (request.getGender() != null && !request.getGender().isBlank()) {
 
                         String reqGender = request.getGender().trim().toLowerCase();
@@ -54,7 +54,8 @@ public class SearchService {
                             return false;
                         }
                     }
-                    // 🔹 Name filter (partial match)
+
+                    // 🔹 Name filter
                     if (request.getName() != null &&
                             user.getName() != null &&
                             !user.getName().toLowerCase().contains(request.getName().toLowerCase()))
@@ -97,9 +98,9 @@ public class SearchService {
 
                     return true;
                 })
-                .toList();
+                .collect(Collectors.toList());
 
-        //  Step 4: sorting (age)
+        // Step 4: sorting
         if ("ageAsc".equalsIgnoreCase(request.getSortBy())){
             filteredUsers.sort(Comparator.comparingInt(user -> {
                 UserProfile p = profileMap.get(user.getId());
@@ -118,6 +119,19 @@ public class SearchService {
             });
         }
 
-        return filteredUsers;
+        // Step 5: convert to DTO
+        return filteredUsers.stream()
+                .map(user -> {
+                    UserProfile profile = profileMap.get(user.getId());
+
+                    return UserSearchResponse.builder()
+                            .name(user.getName())
+                            .age(profile != null ? profile.getAge() : null)
+                            .currentCity(profile != null ? profile.getCurrentCity() : null)
+                            .bio(profile != null ? profile.getBio() : null)
+                            .profileImageUrl(profile != null ? profile.getProfileImageUrl() : null)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

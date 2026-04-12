@@ -5,10 +5,13 @@ import com.dta.Dating_App.entitys.SubscriptionDetails;
 import com.dta.Dating_App.repository.SubscriberRepository;
 import com.dta.Dating_App.repository.SubscriptionDetailsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -39,6 +42,7 @@ public class SubscriptionService {
         sub.setEndTime(LocalTime.now());
 
         sub.setEventType("PLAN_ACTIVATED");
+        sub.setStatus("ACTIVE");
         sub.setSubscriptionId(UUID.randomUUID().toString());
 
         sub.setDescription(details.getDescription());
@@ -57,11 +61,28 @@ public class SubscriptionService {
     }
 
     //  Check Remaining Days
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void updateRemainingDays() {
+
+        List<Subscriber> list = subscriberRepository.findAll();
+
+        for (Subscriber sub : list) {
+
+            long days = ChronoUnit.DAYS.between(LocalDate.now(), sub.getEndDate());
+
+            sub.setRemainsDays((int) Math.max(days, 0));
+
+            subscriberRepository.save(sub);
+        }
+    }
+
     public Integer getRemainingDays(String userId) {
 
-        Subscriber sub = getUserPlan(userId);
+        Subscriber sub = subscriberRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("No active plan"));
 
-        long days = LocalDate.now().until(sub.getEndDate()).getDays();
-        return (int) days;
+        long days = ChronoUnit.DAYS.between(LocalDate.now(), sub.getEndDate());
+
+        return (int) Math.max(days, 0);
     }
 }

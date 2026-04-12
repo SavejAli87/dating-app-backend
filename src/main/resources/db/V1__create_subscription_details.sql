@@ -16,3 +16,4 @@ VALUES
 (0, '10', 'FREE', 7, 'Free Plan', 'FREE_PLAN'),
 (199, '50', 'GOLD', 30, 'Gold Plan', 'GOLD_PLAN'),
 (499, '100', 'PREMIUM', 90, 'Premium Plan', 'PREMIUM_PLAN');
+

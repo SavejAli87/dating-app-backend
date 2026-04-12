@@ -27,6 +27,8 @@ public class SecurityConfig {
                         //  Public APIs
                         .requestMatchers("/register", "/login", "/otp/**").permitAll()
                         .requestMatchers("/verify-register/otp").permitAll()
+                        .requestMatchers("/forgot-password/**",
+                                "/privacy/**" ).permitAll()
 
                         // Swagger
                         .requestMatchers(

@@ -1,7 +1,7 @@
 package com.dta.Dating_App.controller;
 
 import com.dta.Dating_App.DTO.SearchFilterRequest;
-import com.dta.Dating_App.entitys.User;
+import com.dta.Dating_App.DTO.UserSearchResponse;
 import com.dta.Dating_App.services.SearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +14,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class SearchController {
+
     private final SearchService searchService;
 
     @PostMapping
-    public ResponseEntity<List<User>> searchUsers(@RequestBody SearchFilterRequest request){
+    public ResponseEntity<List<UserSearchResponse>> searchUsers(@RequestBody SearchFilterRequest request){
         return ResponseEntity.ok(searchService.search(request));
     }
 }

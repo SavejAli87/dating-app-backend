@@ -222,12 +222,13 @@ public class ProfileService {
     }
 
     // ================== UPDATE BASIC ==================
-    public void updateBasic(Long userId, String name, String bio, Integer age){
+    public void updateBasic(Long userId, String name,String displayName, String bio, Integer age){
 
         UserProfile p = userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
 
         if(name != null) p.setDisplayName(name);
+        if(displayName != null) p.setDisplayName(displayName);
         if(bio != null) p.setBio(bio);
         if(age != null) p.setAge(age);
 

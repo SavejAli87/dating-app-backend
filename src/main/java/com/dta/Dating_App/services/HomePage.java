@@ -38,7 +38,7 @@ public class HomePage {
         List<UserProfile> profiles =
                 userProfileRepository.findByGenderAndUser_UserIdNot(oppositeGender, userId);
 
-        // 🔥 Convert to DTO
+        //  Convert to DTO
         return profiles.stream().map(profile -> {
 
             int age = 0;
@@ -47,9 +47,11 @@ public class HomePage {
             }
 
             return UserCardDTO.builder()
-                    .name(profile.getUser().getName())
-                    .profileImageUrl(profile.getProfileImageUrl())   // ya profile.getImages().get(0)
-                    .age(age)
+                    .name(profile.getName())
+                    .age(profile != null ? profile.getAge() : null)
+                    .currentCity(profile != null ? profile.getCurrentCity() : null)
+                    .bio(profile != null ? profile.getBio() : null)
+                    .profileImageUrl(profile != null ? profile.getProfileImageUrl() : null)
                     .build();
 
         }).toList();

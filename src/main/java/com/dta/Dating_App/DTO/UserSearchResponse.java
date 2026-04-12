@@ -1,5 +1,6 @@
 package com.dta.Dating_App.DTO;
 
+
 import lombok.*;
 
 @Getter
@@ -7,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserCardDTO {
+public class UserSearchResponse {
 
     private String name;
     private Integer age;

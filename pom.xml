@@ -116,7 +116,7 @@
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
-			<version>9.22.3</version> <!--  downgrade -->
+			<version>10.10.0</version> <!-- latest stable -->
 		</dependency>
 
 		<dependency>

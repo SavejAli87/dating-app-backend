@@ -114,6 +114,7 @@ public class ProfileController {
 
         profileService.updateBasic(
                 dto.getUserId(),
+                dto.getName(),
                 dto.getDisplayName(),
                 dto.getBio(),
                 dto.getAge()

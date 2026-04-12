@@ -18,10 +18,10 @@ public class SubscriptionController {
     @PostMapping("/activate")
     public ResponseEntity<String> activate(
             @RequestParam String userId,
-            @RequestParam String type
+            @RequestParam String plan
     ) {
         return ResponseEntity.ok(
-                subscriptionService.activatePlan(userId, type)
+                subscriptionService.activatePlan(userId, plan)
         );
     }
 

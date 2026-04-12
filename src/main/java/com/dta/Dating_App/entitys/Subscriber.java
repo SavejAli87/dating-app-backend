@@ -35,4 +35,6 @@ public class Subscriber {
     private Integer remainsDays;
     private String description;
     private String planType;
+
+    private String status; // ACTIVE / EXPIRED
 }

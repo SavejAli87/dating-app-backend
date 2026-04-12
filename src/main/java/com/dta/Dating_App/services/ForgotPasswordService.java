@@ -16,7 +16,7 @@ public class ForgotPasswordService {
     private final MsgOtpService msgOtpService;
     private final PasswordEncoder passwordEncoder;
 
-    // ✅ SEND OTP
+    //  SEND OTP
     public String sendOtp(String mobile) {
 
         User user = userRepository.findByMobile(mobile)
@@ -27,25 +27,25 @@ public class ForgotPasswordService {
         return "OTP Sent Successfully";
     }
 
-    // ✅ RESET PASSWORD
+    //  RESET PASSWORD
     public String resetPassword(String mobile, String otp, String newPassword) {
 
         User user = userRepository.findByMobile(mobile)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // ✅ OTP verify (NEW WAY)
+        //  OTP verify (NEW WAY)
         boolean isValidOtp = msgOtpService.verifyOtp(mobile, otp);
 
         if (!isValidOtp) {
             throw new RuntimeException("Invalid or expired OTP");
         }
 
-        // ✅ Password validation (optional but recommended)
+        //  Password validation (optional but recommended)
         if (newPassword == null || newPassword.length() < 6) {
             throw new RuntimeException("Password must be at least 6 characters");
         }
 
-        // ✅ Encode password
+        //  Encode password
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 

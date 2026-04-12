@@ -1,6 +1,6 @@
 package com.dta.Dating_App.controller;
 
-import com.dta.Dating_App.entitys.User;
+import com.dta.Dating_App.entitys.UserProfile;
 import com.dta.Dating_App.services.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,17 +15,25 @@ public class DashboardController {
 
     private final DashboardService dashboardService;
 
-    // Online tab
+    // 🟢 Online tab
     @GetMapping("/online")
-    public ResponseEntity<Page<User>> online(@RequestParam(defaultValue = "0") int page,
-                                             @RequestParam(defaultValue = "10") int size){
-        return ResponseEntity.ok(dashboardService.getOnlineUsers(page, size));
+    public ResponseEntity<Page<UserProfile>> online(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(
+                dashboardService.getOnlineUsers(page, size)
+        );
     }
 
-    // recent joined tab
+    //  Recent joined tab
     @GetMapping("/recent")
-    public ResponseEntity<Page<User>> recent(@RequestParam(defaultValue = "0") int page,
-                                             @RequestParam(defaultValue = "10") int size){
-        return ResponseEntity.ok(dashboardService.getRecentJoinedUsers(page, size));
+    public ResponseEntity<Page<UserProfile>> recent(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(
+                dashboardService.getRecentJoinedUsers(page, size)
+        );
     }
 }

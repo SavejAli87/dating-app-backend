@@ -22,18 +22,18 @@ public class LocationService {
     private final UserLocationRepository locationRepository;
     private final UserProfileRepository userProfileRepository;
 
-    // ✅ Get current location
+    //  Get current location
     public UserLocation getCurrentLocation(Long userId){
         return locationRepository.findByUserIdAndCurrentTrue(userId)
                 .orElseThrow(() -> new RuntimeException("Current location not set"));
     }
 
-    // ✅ Get location history (FIXED: String → Long)
+    //  Get location history (FIXED: String → Long)
     public List<UserLocation> getLocationHistory(Long userId) {
         return locationRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    // ✅ Add new location
+    //  Add new location
     @Transactional
     public String addNewLocation(LocationRequest request){
 
@@ -43,11 +43,11 @@ public class LocationService {
         UserProfile profile = userProfileRepository.findByUserId(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
 
-        // 🔹 Step 1: old current location false
+        //  Step 1: old current location false
         locationRepository.findByUserIdAndCurrentTrue(request.getUserId())
                 .ifPresent(loc -> loc.setCurrent(false));
 
-        // 🔹 Step 2: create new location
+        //  Step 2: create new location
         UserLocation location = UserLocation.builder()
                 .user(user)   // (keep as is if you are using Long)
                 .city(request.getCity())
