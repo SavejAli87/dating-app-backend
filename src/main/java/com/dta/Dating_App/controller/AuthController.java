@@ -1,13 +1,17 @@
 package com.dta.Dating_App.controller;
 
 import com.dta.Dating_App.DTO.LoginRequest;
+import com.dta.Dating_App.DTO.LoginResponse;
 import com.dta.Dating_App.DTO.RegisterRequest;
 import com.dta.Dating_App.services.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.naming.AuthenticationException;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping
@@ -51,12 +55,22 @@ public class AuthController {
             ));
         }
 
-        String token = authService.login(request.getMobile(), request.getPassword());
+        try {
+            LoginResponse loginResponse = authService.login(request.getMobile(), request.getPassword());
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Login Successful",
-                "token", token
-        ));
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Login Successful",
+                    "token", loginResponse.getToken(),
+                    "userId", loginResponse.getUserId(),
+                    "sessionId", loginResponse.getSessionId(),
+                    "username", loginResponse.getUsername()
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.dta.Dating_App.services;
 
+import com.dta.Dating_App.DTO.LoginResponse;
 import com.dta.Dating_App.DTO.RegisterRequest;
 import com.dta.Dating_App.JWTUtility.JwtService;
 import com.dta.Dating_App.entitys.User;
@@ -114,7 +115,7 @@ public class AuthService {
     }
 
     // ================= LOGIN =================
-    public String login(String mobile, String password) {
+    public LoginResponse login(String mobile, String password) {
 
         if (mobile == null || password == null) {
             throw new RuntimeException("Mobile and password are required");
@@ -131,6 +132,14 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return jwtService.generateToken(user.getMobile());
+        String token = jwtService.generateToken(user.getMobile());
+        String sessionId = UUID.randomUUID().toString();
+
+        return LoginResponse.builder()
+                .token(token)
+                .userId(user.getUserId())
+                .sessionId(sessionId)
+                .username(user.getName())
+                .build();
     }
 }
