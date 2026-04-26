@@ -3,6 +3,7 @@ package com.dta.Dating_App.controller;
 import com.dta.Dating_App.DTO.LoginRequest;
 import com.dta.Dating_App.DTO.LoginResponse;
 import com.dta.Dating_App.DTO.RegisterRequest;
+import com.dta.Dating_App.DTO.RegisterResponse;
 import com.dta.Dating_App.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,14 +33,20 @@ public class AuthController {
     @PostMapping("/verify-register/otp")
     public ResponseEntity<?> verifyRegister(@RequestBody Map<String, String> body) {
 
-        String token = authService.verifyAndRegister(
+        RegisterResponse response = authService.verifyAndRegister(
                 body.get("sessionId"),
                 body.get("otp")
         );
 
         return ResponseEntity.ok(Map.of(
+                "success", true,
                 "message", "User Registered",
-                "token", token
+                "token", response.getToken(),
+                "userId", response.getUserId(),
+                "ID",response.getId(),
+                "gender", response.getGender(),
+                "sessionId", response.getSessionId(),
+                "username", response.getUsername()
         ));
     }
 
@@ -63,6 +70,8 @@ public class AuthController {
                     "message", "Login Successful",
                     "token", loginResponse.getToken(),
                     "userId", loginResponse.getUserId(),
+                    "ID", loginResponse.getId(),
+                    "gender", loginResponse.getGender(),
                     "sessionId", loginResponse.getSessionId(),
                     "username", loginResponse.getUsername()
             ));

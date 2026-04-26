@@ -12,5 +12,7 @@ public interface SubscriberRepository extends JpaRepository<Subscriber, Long> {
 
     Optional<Subscriber> findByUserId(String userId);
 
+    Optional<Subscriber> findTopByUserIdOrderByEndDateDesc(String userId);
+
 
 }

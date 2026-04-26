@@ -56,7 +56,8 @@ public class SubscriptionService {
 
     //  Get Active Plan
     public Subscriber getUserPlan(String userId) {
-        return subscriberRepository.findByUserId(userId)
+        return subscriberRepository
+                .findTopByUserIdOrderByEndDateDesc(userId)
                 .orElseThrow(() -> new RuntimeException("No active plan found"));
     }
 
@@ -78,8 +79,13 @@ public class SubscriptionService {
 
     public Integer getRemainingDays(String userId) {
 
-        Subscriber sub = subscriberRepository.findByUserId(userId)
+        Subscriber sub = subscriberRepository
+                .findTopByUserIdOrderByEndDateDesc(userId)
                 .orElseThrow(() -> new RuntimeException("No active plan"));
+
+        if (sub.getEndDate() == null) {
+            return 0;
+        }
 
         long days = ChronoUnit.DAYS.between(LocalDate.now(), sub.getEndDate());
 

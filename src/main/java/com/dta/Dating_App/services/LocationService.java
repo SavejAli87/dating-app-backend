@@ -1,6 +1,7 @@
 package com.dta.Dating_App.services;
 
 import com.dta.Dating_App.DTO.LocationRequest;
+import com.dta.Dating_App.DTO.NearbyUserResponse;
 import com.dta.Dating_App.entitys.User;
 import com.dta.Dating_App.entitys.UserLocation;
 import com.dta.Dating_App.entitys.UserProfile;
@@ -73,7 +74,7 @@ public class LocationService {
         return "New location added & set as current";
     }
 
-    // ✅ Switch location
+    //  Switch location
     @Transactional
     public String switchLocation(Long userId, Long locationId){
 
@@ -110,5 +111,40 @@ public class LocationService {
         userProfileRepository.save(profile);
 
         return "Location switched successfully";
+    }
+
+    // NearBy user
+    public List<NearbyUserResponse> getNearbyUsers(String userId, Double radiusKm){
+
+        UserLocation myLocation = locationRepository
+                .findByUser_UserIdAndCurrentTrue(userId)
+                .orElseThrow(() -> new RuntimeException("Current location not found"));
+
+        List<Object[]> results = locationRepository.findNearbyUsers(
+                userId,
+                myLocation.getLat(),
+                myLocation.getLng(),
+                radiusKm
+        );
+
+        return results.stream().map(row -> {
+
+            String nearbyUserId = row[0].toString();   // ✅ FIX
+            String city = (String) row[1];
+            Double distance = Double.parseDouble(row[2].toString());
+
+            UserProfile profile = userProfileRepository
+                    .findByUser_UserId(nearbyUserId)   // ✅ FIX
+                    .orElse(null);
+
+            if (profile == null) return null;
+
+            return new NearbyUserResponse(
+                    profile.getName(),
+                    city,
+                    Math.round(distance * 100.0) / 100.0
+            );
+
+        }).filter(x -> x != null).toList();
     }
 }

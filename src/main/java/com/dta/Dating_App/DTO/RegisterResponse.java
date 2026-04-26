@@ -9,11 +9,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginResponse {
+public class RegisterResponse {
+
     private String token;
     private String userId;
     private String sessionId;
     private String username;
+
     private Long id;
     private String gender;
 

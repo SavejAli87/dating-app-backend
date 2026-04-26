@@ -2,6 +2,7 @@ package com.dta.Dating_App.services;
 
 import com.dta.Dating_App.DTO.LoginResponse;
 import com.dta.Dating_App.DTO.RegisterRequest;
+import com.dta.Dating_App.DTO.RegisterResponse;
 import com.dta.Dating_App.JWTUtility.JwtService;
 import com.dta.Dating_App.entitys.User;
 import com.dta.Dating_App.entitys.UserProfile;
@@ -43,7 +44,7 @@ public class AuthService {
     }
 
     // ================= VERIFY + REGISTER =================
-    public String verifyAndRegister(String sessionId, String otp) {
+    public RegisterResponse verifyAndRegister(String sessionId, String otp) {
 
         RegisterRequest request = tempUsers.get(sessionId);
 
@@ -60,7 +61,6 @@ public class AuthService {
             throw new RuntimeException("Invalid OTP");
         }
 
-        //  Create User with userId
         User user = User.builder()
                 .name(request.getName())
                 .mobile(request.getMobile())
@@ -71,7 +71,6 @@ public class AuthService {
 
         userRepository.save(user);
 
-        //  Create Profile
         UserProfile profile = UserProfile.builder()
                 .user(user)
                 .name(request.getName())
@@ -85,9 +84,19 @@ public class AuthService {
 
         tempUsers.remove(sessionId);
 
-        return jwtService.generateToken(user.getMobile());
-    }
+        //  Same as login response
+        String token = jwtService.generateToken(user.getMobile());
+        String newSessionId = UUID.randomUUID().toString();
 
+        return RegisterResponse.builder()
+                .token(token)
+                .userId(user.getUserId())
+                .sessionId(newSessionId)
+                .id(user.getId())
+                .gender(profile.getGender())
+                .username(user.getName())
+                .build();
+    }
     // ================= USER CODE GENERATOR =================
     private String generateUserCode(String name) {
 
@@ -121,6 +130,7 @@ public class AuthService {
             throw new RuntimeException("Mobile and password are required");
         }
 
+
         User user = userRepository.findByMobile(mobile)
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
@@ -132,6 +142,9 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
+        UserProfile profile = userProfileRepository.findByUser(user)
+                .orElse(null);
+
         String token = jwtService.generateToken(user.getMobile());
         String sessionId = UUID.randomUUID().toString();
 
@@ -139,6 +152,8 @@ public class AuthService {
                 .token(token)
                 .userId(user.getUserId())
                 .sessionId(sessionId)
+                .id(user.getId())
+                .gender(profile != null ? profile.getGender() : null)
                 .username(user.getName())
                 .build();
     }

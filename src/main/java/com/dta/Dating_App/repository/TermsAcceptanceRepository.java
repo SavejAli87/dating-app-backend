@@ -12,4 +12,7 @@ public interface TermsAcceptanceRepository extends JpaRepository<TermsAcceptance
 
     //Optional helper
     boolean existsByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
+
 }

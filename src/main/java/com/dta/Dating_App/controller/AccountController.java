@@ -22,4 +22,9 @@ public class AccountController {
     public ResponseEntity<String> hardDelete(@RequestParam Long userId){
         return ResponseEntity.ok(accountService.hardDelete(userId));
     }
+
+    @PutMapping("/activate")
+    public ResponseEntity<String> activate(@RequestParam Long userId){
+        return ResponseEntity.ok(accountService.activateAccount(userId));
+    }
 }

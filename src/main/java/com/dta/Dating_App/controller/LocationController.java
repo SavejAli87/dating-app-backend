@@ -42,4 +42,14 @@ public class LocationController {
                                                  @RequestParam Long locationId){
         return ResponseEntity.ok(locationService.switchLocation(userId, locationId));
     }
+
+    // Nearby user
+
+    @GetMapping("/nearby")
+    public ResponseEntity<?> getNearbyUsers(
+            @RequestParam String userId,
+            @RequestParam(defaultValue = "100") Double radius
+    ){
+        return ResponseEntity.ok(locationService.getNearbyUsers(userId, radius));
+    }
 }

@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -80,4 +81,6 @@ public class UserProfile {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private boolean selfieVerified;
+
+
 }

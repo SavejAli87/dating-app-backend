@@ -25,6 +25,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
 
     List<UserProfile> findByGenderAndUser_UserIdNot(String gender, String userId);
 
+    Optional<UserProfile> findByUser(User user);
+
 
 
 
