@@ -12,6 +12,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/home")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class HomeController {
 
