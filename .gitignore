@@ -8,10 +8,10 @@ target/
 *.iws
 *.ipr
 
-# VS Code (optional)
+# VS Code
 .vscode/
 
-# Eclipse (optional)
+# Eclipse
 .classpath
 .project
 .settings/
@@ -27,3 +27,6 @@ Thumbs.db
 .env
 application-local.properties
 application-secret.properties
+
+# Spring Boot
+src/main/resources/application.properties
